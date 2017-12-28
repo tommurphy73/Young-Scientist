@@ -18,10 +18,9 @@
 #include <SoftwareSerial.h>
 SoftwareSerial BTserial(8, 9); // RX | TX
  
-const long baudRate = 9600; 
+const long baudRate = 38400; 
 char c=' ';
 boolean NL = true;
-int BOB = 0;
  
 void setup() 
 {
@@ -43,30 +42,12 @@ void setup()
  
 void loop()
 {
-   BOB = digitalRead(11);   // check if the Baby is in the seat or not by reading input pin 11 
-                            // This input is set by the Smart everything board 
- 
-  
-    if (BOB == HIGH) 
-    {
-      // Write char 1 over bluetooth to the FOB to say that a baby is in the seat
-      BTserial.write("1");  
-    } else 
-    {
-      // Write char 0 over bluetooth to the FOB to say that no baby in the seat
-      BTserial.write("0"); 
-    }
-    // Echo the Baby seat status to the main window. 
-    Serial.write(c);
-    c = ' ';  // clear the character 
-    delay(100);  // wait for response from FOB
-
-    
+   
     // Read from the Bluetooth module and send to the Arduino Serial Monitor
     if (BTserial.available())
     {
         c = BTserial.read();
-        Serial.print("Charecter resd back from: ");
+        Serial.print("Charecter read back from: ");
         Serial.write(c);  // Echo the response to the terminal
         Serial.println(" ");
     }
