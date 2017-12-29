@@ -19,7 +19,7 @@
 SoftwareSerial BTserial(8, 9); // RX | TX   // Bluetooth connections to Arduino
  
 // Communications Variables
-const long baudRate = 38400; // Bluetooth baud rate
+const long baudRate = 9600; // Bluetooth baud rate
 char c = ' ';
 boolean NL = true;
 

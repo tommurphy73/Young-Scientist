@@ -18,8 +18,8 @@
 #include <SoftwareSerial.h>
 SoftwareSerial BTserial(8, 9); // RX | TX
  
-const long baudRate = 38400; 
-char c=' ';
+const long baudRate = 9600; 
+char c = ' ';
 boolean NL = true;
  
 void setup() 
@@ -41,18 +41,18 @@ void loop()
 {
  
     // Read from the Bluetooth module and send to the Arduino Serial Monitor
-    if (BTserial.available())
+    if (BTserial.available())     // is there something to be read from the bluetooth HC-06 module
     {
-        c = BTserial.read();
-        Serial.write(c);
+        c = BTserial.read();      // read a character from bluetooth
+        Serial.write(c);          // print the character that has been read to the serial monitor window
     }
  
  
     // Read from the Serial Monitor and send to the Bluetooth module
-    if (Serial.available())
+    if (Serial.available())      // Has a character been typed into the serial monitor window
     {
-        c = Serial.read();
-        BTserial.write(c);   
+        c = Serial.read();       // Read the character
+        BTserial.write(c);       // Send the character to Bluetooth
  
         // Echo the user input to the main window. The ">" character indicates the user entered text.
         if (NL) { Serial.print(">");  NL = false; }
