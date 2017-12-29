@@ -16,28 +16,42 @@
  
  
 #include <SoftwareSerial.h>
-SoftwareSerial BTserial(8, 9); // RX | TX
+SoftwareSerial BTserial(8, 9); // RX | TX   // Bluetooth connections to Arduino
  
-const long baudRate = 38400; 
-char c=' ';
+// Communications Variables
+const long baudRate = 38400; // Bluetooth baud rate
+char c = ' ';
 boolean NL = true;
+
+// Status LEDs
+int BabyInSeat = 1;    //  1 = baby in seat
+int InRange = 1;       //  1 = Bluetooth in range
+int LedFlashing = 0;   //  1 = Led Flashing / Buzzer Buzzing
+int ButtonPressed = 0; //  1 = Button Pressed to disable the Buzzer and LED
+unsigned long previousOutOfRangeMillis = 0;
+int OutOfRangeMilis = 5000; // 5000mS
+
+//**** Variables for LED Blink Function **************
+const int ledPin =  LED_BUILTIN;   // the number of the LED pin
+int ledState = LOW;                // ledState used to set the LED
+// Generally, you should use "unsigned long" for variables that hold time
+unsigned long previousMillis = 0;  // will store last time LED was updated
+const long interval = 1000;        // interval at which to blink (milliseconds)
+unsigned long currentMillis;
  
 void setup() 
 {
-    Serial.begin(9600);
+    Serial.begin(9600);  // terminal baudrate
     Serial.print("Sketch:   ");   Serial.println(__FILE__);
     Serial.print("Uploaded: ");   Serial.println(__DATE__);
     Serial.println(" ");
 
-    pinMode(10,OUTPUT); // key pin  puts decice in at mode
-    digitalWrite(10,HIGH);
-
-    pinMode(11,INPUT);   // Output to the Smarteverything to tell it that the Bluetooth FOB is still in range
-
- 
     BTserial.begin(baudRate);  
     Serial.print("BTserial started at "); Serial.println(baudRate);
     Serial.println(" ");
+
+    // set the digital pin as output:
+    pinMode(ledPin, OUTPUT);
 }
  
 void loop()
@@ -52,18 +66,127 @@ void loop()
         Serial.println(" ");
     }
 
-    if  (c == 'K')
+    if (c == '1')   // Baby in seat
     {
-        digitalWrite(12, HIGH); // Indicates that the FOB is still responding
-        Serial.println("Key Fob has responded");
-    }else
+        BabyInSeat = 1;   // Baby is in the seat
+        // Acknowledge receipt of a character by writing char K over bluetooth to the BOB Master
+        BTserial.write("K"); 
+
+        InRange = 1;   // FOB is in range
+        
+        // Reset the out of Range Timer
+        previousOutOfRangeMillis = millis();  // Update the timer to with the last time a message was received
+    }
+
+    if (c == '0')  // Baby not in seat
     {
-        digitalWrite(12, LOW);  // Indicates no response from FOB (FOB out of range)
-        Serial.println("No Response from Keyfob or Keyfob out of range");
+        BabyInSeat = 0;   // Baby is not in the seat
+        // Acknowledge receipt of a character by writing char K over bluetooth to the BOB Master
+        BTserial.write("K"); 
+
+        InRange = 1;   // FOB is in range
+        
+        // Reset the out of Range Timer
+        previousOutOfRangeMillis = millis();  // Update the timer to with the last time a message was received
+    }
+
+
+    // Check how long the FOB has been out of range
+    currentMillis = millis();  // Update current time in miliSeconds
+    if (currentMillis - previousOutOfRangeMillis >= OutOfRangeMilis)   
+    {
+        InRange = 0;    // If the FOB has been out of range for too long then set the InRange bit to 0
     }
     
-    c = ' ';
-   
-    delay(1000);  // send message every second
+
+    if (InRange == 1)
+    {
+        if (BabyInSeat == 1)
+        {
+            LedFlashing = 0;    
+        }
+        
+        if (BabyInSeat == 0)
+        {
+            LedFlashing = 0;    
+        } 
+    }
+
+
+    if (InRange = 0)  // FOB out of range
+    {
+        if (BabyInSeat == 1)  // FOB out of range and Baby in Seat
+        {
+            LedFlashing = 1;
+        }
+        
+        if (BabyInSeat == 0)  // FOB out of range and Baby not in Seat
+        {
+            LedFlashing = 0;    
+        } 
+    }
+
+
+    if (LedFlashing == 1)
+    {
+        BlinkLED;    // Call The LED blink and buzzer sound function
+    }else
+    {
+        digitalWrite(12, LOW);     // Buzzer Off connected to digital pin 1
+        digitalWrite(ledPin, LOW); // LED off  
+    }
+  
  
 }
+
+
+
+
+void BlinkLED()
+{
+/*
+  Blink without Delay
+
+  Turns on and off a light emitting diode (LED) connected to a digital pin,
+  without using the delay() function. This means that other code can run at the
+  same time without being interrupted by the LED code.
+
+  The circuit:
+  - Use the onboard LED.
+  - Note: Most Arduinos have an on-board LED you can control. On the UNO, MEGA
+    and ZERO it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN
+    is set to the correct LED pin independent of which board is used.
+    If you want to know what pin the on-board LED is connected to on your
+    Arduino model, check the Technical Specs of your board at:
+    https://www.arduino.cc/en/Main/Products
+*/
+
+  // here is where you'd put code that needs to be running all the time.
+
+  // check to see if it's time to blink the LED; that is, if the difference
+  // between the current time and last time you blinked the LED is bigger than
+  // the interval at which you want to blink the LED.
+  currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;
+
+    // if the LED is off turn it on and vice-versa:
+    if (ledState == LOW) {
+      ledState = HIGH;
+      digitalWrite(12, HIGH); // Buzzer On connected to digital pin 12
+    } else {
+      ledState = LOW;
+      digitalWrite(12, LOW); // Buzzer Off connected to digital pin 12
+    }
+
+    // set the LED with the ledState of the variable:
+    digitalWrite(ledPin, ledState);
+  }
+}
+
+
+
+
+
