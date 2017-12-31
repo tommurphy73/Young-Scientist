@@ -61,9 +61,9 @@ void loop()
     if (BTserial.available())
     {
         c = BTserial.read();
-        Serial.print("Charecter read back from: ");
-        Serial.write(c);  // Echo the response to the terminal
-        Serial.println(" ");
+       // Serial.print("Charecter read back from: ");
+      //  Serial.write(c);  // Echo the response to the terminal
+      //  Serial.println(" ");
     }
 
     if (c == '1')   // Baby in seat
@@ -71,6 +71,8 @@ void loop()
         BabyInSeat = 1;   // Baby is in the seat
         // Acknowledge receipt of a character by writing char K over bluetooth to the BOB Master
         BTserial.write("K"); 
+
+        Serial.println("Baby in Seat ");
 
         InRange = 1;   // FOB is in range
         
@@ -84,6 +86,8 @@ void loop()
         // Acknowledge receipt of a character by writing char K over bluetooth to the BOB Master
         BTserial.write("K"); 
 
+        Serial.println("Baby not in Seat ");
+
         InRange = 1;   // FOB is in range
         
         // Reset the out of Range Timer
@@ -91,13 +95,19 @@ void loop()
     }
 
 
+    c = ' ';   // clear the value in the char c
+
     // Check how long the FOB has been out of range
     currentMillis = millis();  // Update current time in miliSeconds
     if (currentMillis - previousOutOfRangeMillis >= OutOfRangeMilis)   
     {
         InRange = 0;    // If the FOB has been out of range for too long then set the InRange bit to 0
+        Serial.println('FOB Out of Range for more than 10 seconds');
     }
     
+     Serial.println(currentMillis - previousOutOfRangeMillis);
+     Serial.println(InRange);
+
 
     if (InRange == 1)
     {
@@ -110,10 +120,11 @@ void loop()
         {
             LedFlashing = 0;    
         } 
+        //Serial.println("FOB In Range ");
     }
 
 
-    if (InRange = 0)  // FOB out of range
+    if (InRange == 0)  // FOB out of range
     {
         if (BabyInSeat == 1)  // FOB out of range and Baby in Seat
         {
@@ -124,6 +135,7 @@ void loop()
         {
             LedFlashing = 0;    
         } 
+        Serial.println("FOB Out of Range for more than 10 Seconds ");
     }
 
 
@@ -135,8 +147,10 @@ void loop()
         digitalWrite(12, LOW);     // Buzzer Off connected to digital pin 1
         digitalWrite(ledPin, LOW); // LED off  
     }
+
+    delay(100);   //  slows down the number of loops 
+
   
- 
 }
 
 
