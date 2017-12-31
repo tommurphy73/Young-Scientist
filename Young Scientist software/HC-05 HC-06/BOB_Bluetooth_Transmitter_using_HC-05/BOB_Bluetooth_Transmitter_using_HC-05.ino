@@ -66,7 +66,7 @@ void loop()
     if (BTserial.available())
     {
         c = BTserial.read();
-        Serial.print("Charecter resd back from: ");
+        Serial.print("Charecter read back: ");
         Serial.write(c);  // Echo the response to the terminal
         Serial.println(" ");
     }
@@ -74,11 +74,11 @@ void loop()
     if  (c == 'K')
     {
         digitalWrite(12, HIGH); // Indicates that the FOB is still responding
-        Serial.println("Key Fob has responded");
+        //Serial.println("Key Fob has responded");
     }else
     {
         digitalWrite(12, LOW);  // Indicates no response from FOB (FOB out of range)
-        Serial.println("No Response from Keyfob or Keyfob out of range");
+        //Serial.println("No Response from Keyfob or Keyfob out of range");
     }
     
     c = ' ';
