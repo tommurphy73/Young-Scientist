@@ -22,6 +22,14 @@ const long baudRate = 9600;
 char c=' ';
 boolean NL = true;
 int BOB = 0;
+
+
+
+// Generally, you should use "unsigned long" for variables that hold time
+unsigned long previousMillis = 0;  // will store last time LED was updated
+const long interval = 5000;        // If the FOB fails to respond 5 times in a row then it definitely out of range
+unsigned long currentMillis;
+int CharKReadBack = 0; 
  
 void setup() 
 {
@@ -30,15 +38,16 @@ void setup()
     Serial.print("Uploaded: ");   Serial.println(__DATE__);
     Serial.println(" ");
 
-    pinMode(10,OUTPUT); // key pin  puts decice in at mode
-    digitalWrite(10,HIGH);
+ //   pinMode(10,OUTPUT);      // key pin  puts HC-05 Bluetooth device in AT communication mode
+ //   digitalWrite(10,HIGH);   // not needed as the device has been programmed to connect to the HC-06
 
-    pinMode(11,INPUT);   // Output to the Smarteverything to tell it that the Bluetooth FOB is still in range
-
+    pinMode(11,INPUT);       // Input from Smarteverything determine if the baby is in the seat or not
+                             // High indicates that baby is in the seat
  
-    BTserial.begin(baudRate);  
+    BTserial.begin(baudRate);    // Start up the communication with the Bluetooth module
     Serial.print("BTserial started at "); Serial.println(baudRate);
     Serial.println(" ");
+
 }
  
 void loop()
@@ -47,6 +56,9 @@ void loop()
                             // This input is set by the Smart everything board 
  
   
+    BTserial.flush();  // Flush the Bluetooth serial port to ensure that there are no unwanted characters in it
+    
+    
     if (BOB == HIGH) 
     {
       // Write char 1 over bluetooth to the FOB to say that a baby is in the seat
@@ -56,33 +68,39 @@ void loop()
       // Write char 0 over bluetooth to the FOB to say that no baby in the seat
       BTserial.write("0"); 
     }
-    // Echo the Baby seat status to the main window. 
-    Serial.write(c);
     c = ' ';  // clear the character 
-    delay(100);  // wait for response from FOB
 
-    
+    delay(100);  // wait for response from FOB
+ 
+  
     // Read from the Bluetooth module and send to the Arduino Serial Monitor
-    if (BTserial.available())
-    {
+    while (BTserial.available())
+    { 
         c = BTserial.read();
         Serial.print("Charecter read back: ");
-        Serial.write(c);  // Echo the response to the terminal
-        Serial.println(" ");
+        Serial.println(c);  // Echo the response to the terminal
+    }
+   
+    if  (c == 'K')
+    { 
+        previousMillis = currentMillis;  // Response has been got so reset the timer
+        //digitalWrite(12, HIGH);        // Indicates that the FOB is still responding
+        Serial.println("Key Fob has responded");
     }
 
-    if  (c == 'K')
+    currentMillis = millis();
+    Serial.println(currentMillis - previousMillis);
+
+    if (currentMillis - previousMillis >= interval) 
+    { 
+      digitalWrite(12, LOW);  // Indicates no response from FOB (FOB out of range)
+      Serial.println("Fob is out of Range for 5 seconds");
+    } else
     {
-        digitalWrite(12, HIGH); // Indicates that the FOB is still responding
-        //Serial.println("Key Fob has responded");
-    }else
-    {
-        digitalWrite(12, LOW);  // Indicates no response from FOB (FOB out of range)
-        //Serial.println("No Response from Keyfob or Keyfob out of range");
+      digitalWrite(12, HIGH); // Indicates that the FOB is still responding 
+      Serial.println("Fob is in Range"); 
     }
-    
-    c = ' ';
    
-    delay(1000);  // send message every second
+    delay(900);  // send message every second  (900mS + 100mS delay earlier in the program)
  
 }
