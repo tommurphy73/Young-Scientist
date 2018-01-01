@@ -12,7 +12,9 @@
 //
 //  When a command is entered in the serial monitor on the computer 
 //  the Arduino will relay it to the bluetooth module and display the result.
-//
+
+//  AT commands
+//  https://www.itead.cc/wiki/Serial_Port_Bluetooth_Module_(Master/Slave)_:_HC-05
  
  
 #include <SoftwareSerial.h>
