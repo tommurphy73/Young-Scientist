@@ -102,5 +102,7 @@ void loop()
     }
    
     delay(900);  // send message every second  (900mS + 100mS delay earlier in the program)
+
+   // BTserial.flush();  // Flush the Bluetooth serial port to ensure that there are no unwanted characters in it
  
 }
