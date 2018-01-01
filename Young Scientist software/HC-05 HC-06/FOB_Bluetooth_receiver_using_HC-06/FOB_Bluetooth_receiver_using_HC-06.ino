@@ -108,6 +108,10 @@ void loop()
 
     // Check how long the FOB has been out of range
     currentMillis = millis();  // Update current time in miliSeconds
+    
+    Serial.print ("Time since the Fob was in range of the Seat: ");
+    Serial.println(currentMillis - previousOutOfRangeMillis);   // print time since last contact with Seat
+ 
     if (currentMillis - previousOutOfRangeMillis >= OutOfRangeMilis)   
     {
         InRange = 0;    // If the FOB has been out of range for too long then set the InRange bit to 0
@@ -152,7 +156,8 @@ void loop()
 
     // read the state of the Switch Pin:
     SwitchState = digitalRead(SwitchPin);
-    Serial.println(SwitchState);
+    //Serial.println(SwitchState);
+    
      if (SwitchState == HIGH)
     {
          SwitchPressed = 1;    // The disable swithc has been pressed.      
@@ -170,7 +175,7 @@ void BlinkLED()
   same time without being interrupted by the LED code.
 */
 
-Serial.println("Blink LED Called ");
+  // Serial.println("Blink LED Called ");
 
   // here is where you'd put code that needs to be running all the time.
 
@@ -179,27 +184,27 @@ Serial.println("Blink LED Called ");
   // the interval at which you want to blink the LED.
   currentMillis = millis();
 
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
+  if (currentMillis - previousMillis >= interval) 
+  { 
+    previousMillis = currentMillis;   // save the last time you blinked the LED
 
     // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW) {
-      ledState = HIGH;
-
-
+    if (ledState == LOW)         // If LED is off
+    {
+      ledState = HIGH;           // Turn LED on
     
-      if (SwitchPressed == 0)  // Buzzer only active is switch has not been pressed
+      if (SwitchPressed == 0)    // Buzzer only active is switch has not been pressed
       {
-          digitalWrite(BuzzerPin, HIGH); // Buzzer On connected to digital pin 12
+          digitalWrite(BuzzerPin, HIGH); // Turn on Buzzer
       }
-    } else {
-      ledState = LOW;
+    } 
+     else 
+    {
+      ledState = LOW;               //  else turn LED off
       digitalWrite(BuzzerPin, LOW); // Buzzer Off connected to digital pin 12
     }
-
-    // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
+    
+    digitalWrite(ledPin, ledState);  // set the LED with the ledState of the variable:
   }
 }
 
