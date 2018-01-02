@@ -82,21 +82,21 @@ void setup() {
   //Skywriter.onXYZ(xyz);
 
 // ************ End of Skywriter Setup ******************************
-  
-
 }
 
-// the loop function runs over and over again forever
+
+
+// ******** The Main loop function runs over and over again forever ***********
 void loop() { 
   
-// ************ Skywriter Main Loop Function Call ******************
+// ***************** Skywriter Main Loop Code ******************
   Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat)
 // If the baby is in the seat then  BabyInSeat variable remains active until there is no activity for 30 seconds
 //  After 30 seconds the seat starts to transmit Sigfox messages with GPS co-ordinates and Temperature measurements
-// *****************************************************************
+// **************End of Skywriter Main Loop Code ******************
 
 
-// ************ Sigfox Main Functions ***********************  
+// ***************** Sigfox Main Loop Code *********************  
   frame2.temp = smeHumidity.readTemperature();
   frame.x = smeAccelerometer.readX();
   frame.y = smeAccelerometer.readY();
@@ -136,8 +136,10 @@ void loop() {
     frame.buttonPressed = false;
   }
 
-// ****************** End of Sigfox main loop functions ***********************
+// ****************** End of Sigfox main loop code ***********************
 }
+
+// *********************** End of Main Loop ********************
 
 
 
