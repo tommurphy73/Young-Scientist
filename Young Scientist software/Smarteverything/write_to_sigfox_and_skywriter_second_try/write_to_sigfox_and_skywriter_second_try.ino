@@ -41,12 +41,26 @@ unsigned int BabyInSeat = 0;   // 0 indicates that the baby is not in the seat
 // *********** End of Skywriter Initialize *************
 
 
+// ******************* Other **********************
+const int SeatState =  11;    // Output to the BOB Arduino indicating if there is a baby in the seat or not
+const int InRange = 10;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
+const int SeatAlarm = 9;      // Pin used to output to an LED indicating that the alarm has been activated (High Active)
 
+int LedState = LOW;           // ledState used to set the state of the ALarm LED
+int SendAlarm = 0;            // Start sending sigfox messages and turn on alarm LED 
+int BabyInSeat = 0;           // Default is baby not in seat
+int RangeState = 0;           //  1 if Fob is in Ragne 0 if out of range
+Int OutOfRangeTimeout = 6000; // If the FOB is out of range for more than a minute then start sending sigfox messages
+
+
+// Generally, you should use "unsigned long" for variables that hold time
+unsigned long previousMillis = 0;  // will store last time LED was updated
+const long interval = 1000;        // interval at which to blink (milliseconds)
+unsigned long currentMillis;
+// ************************************************
   
 
 // the setup function runs once when you press reset or power the board
-
-
 void setup() {
 
 // ************** Beginning of Sigfox Setup ************************
@@ -82,7 +96,21 @@ void setup() {
   //Skywriter.onXYZ(xyz);
 
 // ************ End of Skywriter Setup ******************************
+
+
+// ********************** Input/Output Setup **************************
+   // set the SeatState digital pin as output:
+    pinMode(SeatState, OUTPUT);
+
+    // set the InRange digial pin as input:
+    pinMode(InRange, INPUT);
+
+   // set the SeatAlarm (LED) digital pin as output:
+    pinMode(SeatAlarm, OUTPUT);
+// ******************* End of Input/Output setup **********************
+
 }
+
 
 
 
@@ -97,49 +125,104 @@ void loop() {
 
 
 // ***************** Sigfox Main Loop Code *********************  
-  frame2.temp = smeHumidity.readTemperature();
-  frame.x = smeAccelerometer.readX();
-  frame.y = smeAccelerometer.readY();
-  frame.z = smeAccelerometer.readZ();
-  
-  if (smeGps.ready()) {
-    frame2.latitude   = smeGps.getLatitude();
-    frame2.longitude  = smeGps.getLongitude();
-  }
-  else {
-    frame2.latitude = 52.671663;    //default if no gps signal found
-    frame2.longitude = -8.653249;
-  }
-  
-  if (isButtonOnePressed()) {
-    SerialUSB.println("Pressed!");
-    frame.buttonPressed = true;
-    last = millis();
-  }
-  if (frame.buttonPressed == true) {
-    // bool answer = sendSigfox(&frame, sizeof(data));   removed as not needed
-    /*SerialUSB.print("  X = ");
-    SerialUSB.print(frame.x, DEC);
-    SerialUSB.print("     Y = ");
-    SerialUSB.print(frame.y, DEC);
-    SerialUSB.print("     Z = ");
-    SerialUSB.println(frame.z, DEC);
-    delay(2000);*/
-    bool answer = sendSigfox(&frame2, sizeof(data2));  // added bool as deleted the first sendsigfox function call
-    //  /*
-    SerialUSB.print("temp ");
-    SerialUSB.println(frame2.temp);
-    SerialUSB.print("Latitude ");
-    SerialUSB.print(frame2.latitude, DEC);
-    SerialUSB.print("Longitude ");
-    SerialUSB.print(frame2.longitude, DEC);  // */
-    frame.buttonPressed = false;
-  }
 
+  if (SendAlarm = 1)      // Send sigfox messages
+  {
+    frame2.temp = smeHumidity.readTemperature();
+    frame.x = smeAccelerometer.readX();
+    frame.y = smeAccelerometer.readY();
+    frame.z = smeAccelerometer.readZ();
+  
+    if (smeGps.ready()) {
+      frame2.latitude   = smeGps.getLatitude();
+      frame2.longitude  = smeGps.getLongitude();
+    }
+    else {
+      frame2.latitude = 52.671663;    //default if no gps signal found
+      frame2.longitude = -8.653249;
+    }
+  
+    if (isButtonOnePressed()) {
+      SerialUSB.println("Pressed!");
+      frame.buttonPressed = true;
+      last = millis();
+    }
+    if (frame.buttonPressed == true) {
+      // bool answer = sendSigfox(&frame, sizeof(data));   removed as not needed
+      /*SerialUSB.print("  X = ");
+      SerialUSB.print(frame.x, DEC);
+      SerialUSB.print("     Y = ");
+      SerialUSB.print(frame.y, DEC);
+      SerialUSB.print("     Z = ");
+      SerialUSB.println(frame.z, DEC);
+      delay(2000);*/
+      bool answer = sendSigfox(&frame2, sizeof(data2));  // added bool as deleted the first sendsigfox function call
+      //  /*
+      SerialUSB.print("temp ");
+      SerialUSB.println(frame2.temp);
+      SerialUSB.print("Latitude ");
+      SerialUSB.print(frame2.latitude, DEC);
+      SerialUSB.print("Longitude ");
+      SerialUSB.print(frame2.longitude, DEC);  // */
+      frame.buttonPressed = false;
+    }
+  }
 // ****************** End of Sigfox main loop code ***********************
+    
+    
+    // read the state of the InRange digital pin:    
+    RangeState = digitalRead(InRange);
+
+    if (RangeState = 1) // FOB in Range
+    {
+       previousMillis = millis();   // Reset the out of range counter as FOB in range
+       SendAlarm = 0;    // Stop sending Sigfox messages and turn on alarm
+       LedState = 0;     // Turn off the Alarm LED       
+    }
+  
+    if (BabyInSeat = 0)   // Baby not in Seat
+    {
+       previousMillis = millis();   // Reset the out of range counter as no baby in the seat
+       SendAlarm = 0;    // Stop sending Sigfox messages and turn on alarm
+       LedState = 0;     // Turn off the Alarm LED   
+    }
+
+   // Check how long the FOB has been out of range while baby is in the seat
+    currentMillis = millis();  // Update current time in miliSeconds
+    
+    Serial.print ("Time since the Fob was in range of the Seat: ");
+    Serial.println(currentMillis - previousMillis);   // print time since last contact with Seat
+ 
+    if (currentMillis - previousMillis >= OutOfRangeTimeout)  
+    {
+       SendAlarm = 1;    //Start sending Sigfox messages and turn on alarm
+       LedState = 1;     // Turn on the Alarm LED       
+    }
+
+
+    if (LedState = 1)
+    {
+       digitalWrite(SeatAlarm, HIGH);     // LED on 
+    }else
+    {
+       digitalWrite(SeatAlarm, LOW);     // LED off 
+    }
+
+
+
+
 }
 
+// *************************************************************
 // *********************** End of Main Loop ********************
+// *************************************************************
+
+
+
+
+
+
+
 
 
 
