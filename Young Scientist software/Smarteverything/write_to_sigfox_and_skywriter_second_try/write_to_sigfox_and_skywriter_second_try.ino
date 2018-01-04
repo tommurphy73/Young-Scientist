@@ -1,4 +1,4 @@
-#include <skywriter.h>   // skywriter include
+#include <skywriter.h>      // skywriter include
 
 
 // *********** Sigfox Includes ************
@@ -41,14 +41,14 @@ unsigned int min_x, min_y, min_z;
 
 
 // ******************* Other **********************
-const int BabyInSeatPin =  11;  // Output to the BOB Arduino indicating if there is a baby in the seat or not
-const int InRangePin = 10;      // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
-const int SeatAlarmLedPin = 9;  // Pin used to output to an LED indicating that the alarm has been activated (High Active)
+const int BabyInSeatPin =  11;   // Output to the BOB Arduino indicating if there is a baby in the seat or not
+const int InRangePin = 10;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
+const int SeatAlarmLedPin = 9;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
 
-int SeatAlarmLedState = 0;      // FOB out of range for too long and baby in seat
-int SendAlarmState =  0;        // 1 = Send Sigfox message
-int BabyInSeatState = 0;        // 1 = Baby in seat
-int InRangeState = 0;           //  1 if Fob is in Ragne 0 if out of range
+int SeatAlarmLedState = 0;       // FOB out of range for too long and baby in seat
+int SendAlarmState =  0;         // 1 = Send Sigfox message
+int BabyInSeatState = 0;         // 1 = Baby in seat
+int InRangeState = 0;            //  1 if Fob is in Ragne 0 if out of range
 
 // ****** Generally, you should use "unsigned long" for variables that hold time *********
 unsigned long previousMillis = 0;     // will store last time LED was updated
@@ -124,9 +124,9 @@ void loop() {
 
 
 
-  if (SendAlarmState = 1)      // Send sigfox messages
+  if (SendAlarmState = 1)     // Send sigfox messages
   {
-    SendSigfoxMessage();  // Send Message to Sigfox Cloud
+    SendSigfoxMessage();      // Send Message to Sigfox Cloud
   }
 
       
@@ -139,9 +139,9 @@ void loop() {
 
     if (InRangeState = 1) // FOB in Range
     {
-       previousMillis = millis();   // Reset the out of range counter as FOB in range
-       SendAlarmState = 0;    // Stop sending Sigfox messages and turn on alarm
-       SeatAlarmLedState = 0;     // Turn off the Alarm LED       
+       previousMillis = millis();  // Reset the out of range counter as FOB in range
+       SendAlarmState = 0;         // Stop sending Sigfox messages and turn on alarm
+       SeatAlarmLedState = 0;      // Turn off the Alarm LED       
     }
     else   // FOB out of Range for time determined by BOB
     {
@@ -151,20 +151,20 @@ void loop() {
     if (BabyInSeatState= 0)   // Baby not in Seat
     {
        previousMillis = millis();   // Reset the out of range counter as no baby in the seat
-       SendAlarmState = 0;    // Stop sending Sigfox messages and turn on alarm
-       SeatAlarmLedState = 0;     // Turn off the Alarm LED   
+       SendAlarmState = 0;          // Stop sending Sigfox messages and turn on alarm
+       SeatAlarmLedState = 0;       // Turn off the Alarm LED   
     }
 
    // Check how long the FOB has been out of range while baby is in the seat
-    currentMillis = millis();  // Update current time in miliSeconds
+    currentMillis = millis();      // Update current time in miliSeconds
     
     Serial.print ("Time since the Fob was in range of the Seat: ");
     Serial.println(currentMillis - previousMillis);   // print time since last contact with Seat
  
     if (currentMillis - previousMillis >= OutOfRangeTimeout)  
     {
-       SendAlarmState = 1;    //Start sending Sigfox messages and turn on alarm
-       SeatAlarmLedState = 1;     // Turn on the Alarm LED       
+       SendAlarmState = 1;        //Start sending Sigfox messages and turn on alarm
+       SeatAlarmLedState = 1;    // Turn on the Alarm LED       
     }
 
 
