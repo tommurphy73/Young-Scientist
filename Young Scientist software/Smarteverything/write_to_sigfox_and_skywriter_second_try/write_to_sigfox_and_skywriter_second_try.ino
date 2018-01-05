@@ -141,7 +141,9 @@ void loop() {
     currentMillis = millis();      // Update current time in miliSeconds
     if (currentMillis - previousSigFoxMillis >= SigFoxTimeout)
     {
-       SigFoxMessageSent = 0  
+       SigFoxMessageSent = 0;   // Reset the Sigfox Sent message flag after 10 minutes
+       Serial.println ("Sigfox sent flag reset"); 
+       
     }
     
   }
@@ -180,7 +182,7 @@ void loop() {
  
     if (currentMillis - previousMillis >= OutOfRangeTimeout)  
     {
-       if (SigFoxMessageSent <> 1)
+       if (SigFoxMessageSent != 1)
        {
          SendAlarmState = 1;        //Start sending Sigfox messages and turn on alarm
          SeatAlarmLedState = 1;    // Turn on the Alarm LED       
