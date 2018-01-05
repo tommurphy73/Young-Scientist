@@ -212,7 +212,7 @@ void loop() {
 
 
 
-
+delay(100);
 }
 
 // *************************************************************
@@ -245,6 +245,8 @@ void SendSigfoxMessage() {
       frame2.latitude = 52.671663;    //default if no gps signal found
       frame2.longitude = -8.653249;
     }
+
+    Serial.println ("Press button on Smarteverything board");
   
     if (isButtonOnePressed()) {
       SerialUSB.println("Pressed!");
