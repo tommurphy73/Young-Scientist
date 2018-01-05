@@ -47,6 +47,7 @@ const int SeatAlarmLedPin = 9;   // Pin used to output to an LED indicating that
 
 int SeatAlarmLedState = 0;       // FOB out of range for too long and baby in seat
 int SendAlarmState =  0;         // 1 = Send Sigfox message
+int SigFoxMessageSent = 0;       // 1 indicates that a Sigfox message has already been sent to the cloud so no need to send again for at least 10 minutes
 int BabyInSeatState = 0;         // 1 = Baby in seat
 int InRangeState = 0;            //  1 if Fob is in Ragne 0 if out of range
 
@@ -55,6 +56,14 @@ unsigned long previousMillis = 0;     // will store last time LED was updated
 const long OutOfRangeTimeout = 6000;  // If the FOB is out of range for more than a minute then start sending sigfox messages
 unsigned long currentMillis;          // Used to store current time in milliseconds
 // ***************************************************************************************
+
+// ************ SigFox Retry sending message every 10 minutes *************
+unsigned long previousSigFoxMillis = 0;     // will store last time LED was updated
+const long SigFoxTimeout = 600000;  // Retry sending the Sigfox message every 10 minutes 
+// ************************************************************************
+
+
+
   
 
 // ********** the setup function runs once when you press reset or power the board *********
@@ -115,29 +124,35 @@ void setup() {
 // ****************************************************************
 void loop() { 
   
+  
 // ****************** Skywriter Main Loop Code **********************
+
+
   Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat)
+
+
 // If the baby is in the seat then  BabyInSeatStatevariable remains active until there is no activity for 30 seconds
 //  After 30 seconds the seat starts to transmit Sigfox messages with GPS co-ordinates and Temperature measurements
 // **************End of Skywriter Main Loop Code ********************
 
 
-
-
-  if (SendAlarmState = 1)     // Send sigfox messages
+  if (SigFoxMessageSent == 1)
   {
-    SendSigfoxMessage();      // Send Message to Sigfox Cloud
+    currentMillis = millis();      // Update current time in miliSeconds
+    if (currentMillis - previousSigFoxMillis >= SigFoxTimeout)
+    {
+       SigFoxMessageSent = 0  
+    }
+    
   }
 
-      
-  
 
-    
-    
-    // read the state of the InRangePin digital pin:    
+
+// read the state of the InRangePin digital pin:    
+
     InRangeState = digitalRead(InRangePin);
 
-    if (InRangeState = 1) // FOB in Range
+    if (InRangeState == 1) // FOB in Range
     {
        previousMillis = millis();  // Reset the out of range counter as FOB in range
        SendAlarmState = 0;         // Stop sending Sigfox messages and turn on alarm
@@ -145,17 +160,19 @@ void loop() {
     }
     else   // FOB out of Range for time determined by BOB
     {
-      
+       // Do not reset the previous milis so that the counter starts counting upwards   
     }
   
-    if (BabyInSeatState= 0)   // Baby not in Seat
+    if (BabyInSeatState == 0)   // Baby not in Seat
     {
        previousMillis = millis();   // Reset the out of range counter as no baby in the seat
        SendAlarmState = 0;          // Stop sending Sigfox messages and turn on alarm
        SeatAlarmLedState = 0;       // Turn off the Alarm LED   
     }
 
-   // Check how long the FOB has been out of range while baby is in the seat
+
+
+  // Check how long the FOB has been out of range while baby is in the seat
     currentMillis = millis();      // Update current time in miliSeconds
     
     Serial.print ("Time since the Fob was in range of the Seat: ");
@@ -163,18 +180,35 @@ void loop() {
  
     if (currentMillis - previousMillis >= OutOfRangeTimeout)  
     {
-       SendAlarmState = 1;        //Start sending Sigfox messages and turn on alarm
-       SeatAlarmLedState = 1;    // Turn on the Alarm LED       
+       if (SigFoxMessageSent <> 1)
+       {
+         SendAlarmState = 1;        //Start sending Sigfox messages and turn on alarm
+         SeatAlarmLedState = 1;    // Turn on the Alarm LED       
+       }
     }
 
 
     if (SeatAlarmLedState == 1)
     {
        digitalWrite(SeatAlarmLedPin, HIGH);     // LED on 
+       Serial.print ("Seat Alarm LED on");
     }else
     {
        digitalWrite(SeatAlarmLedPin, LOW);     // LED off 
     }
+
+
+
+
+    if (SendAlarmState == 1)     // Send sigfox messages
+    {
+      // SendSigfoxMessage();      // Send Message to Sigfox Cloud
+      Serial.print ("Sending Sigfox message to the cloud");
+      SigFoxMessageSent = 1; // Message send so no need to send again
+      previousSigFoxMillis = millis();  // Start time
+    }
+
+
 
 
 }
