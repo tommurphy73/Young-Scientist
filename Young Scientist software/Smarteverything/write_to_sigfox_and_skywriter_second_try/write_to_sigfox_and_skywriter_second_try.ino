@@ -186,10 +186,12 @@ void loop() {
  
     if (currentMillis - previousFobInRangeMillis >= FobOutOfRangeTimeout)  
     {
-       digitalWrite(InRangeIndicatorPin, HIGH);     // in Range LED Indicator on 
+       digitalWrite(InRangeIndicatorPin, HIGH);     // Out of  Range LED Indicator on 
+       InRangeState = 0;  // FOB out of Range
     }else
     {
-       digitalWrite(InRangeIndicatorPin, LOW);     // in Range LED Indicator on 
+       digitalWrite(InRangeIndicatorPin, LOW);     // Out of Range LED Indicator off
+       InRangeState = 1;  // FOB in Range
     }
 
 //************************** End of Check If the FOB is in Range of BOB  **************************
@@ -198,7 +200,20 @@ void loop() {
 
 
 // ********************************* Send a message to SIGFOX *************************************
-
+    if ( (InRangeState == 0) && (BabyInSeatState == 1) )    // check if the baby is in the seat and FOB is out of range
+    {
+        if (SigFoxMessageSent != 1)   // Message not already sent
+        {
+           // SendSigfoxMessage();      // Send Message to Sigfox Cloud
+           //Serial.print ("Sending Sigfox message to the cloud");
+           SigFoxMessageSent = 1; // Message send so no need to send again
+           previousSigFoxMillis = millis();  // Start time
+        }
+    }
+ 
+  
+  
+  
   if (SigFoxMessageSent == 1)
   {
      currentMillis = millis();      // Update current time in miliSeconds
@@ -211,13 +226,7 @@ void loop() {
   }
 
 
-    if (SendAlarmState == 1)     // Send sigfox messages
-    {
-      // SendSigfoxMessage();      // Send Message to Sigfox Cloud
-      //Serial.print ("Sending Sigfox message to the cloud");
-      SigFoxMessageSent = 1; // Message send so no need to send again
-      previousSigFoxMillis = millis();  // Start time
-    }
+
 
 // ******************************** End of Send a message to SIGFOX ***************************************
 
