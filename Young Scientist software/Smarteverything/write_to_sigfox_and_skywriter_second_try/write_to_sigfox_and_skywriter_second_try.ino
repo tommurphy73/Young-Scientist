@@ -41,9 +41,9 @@ unsigned int min_x, min_y, min_z;
 
 
 // ******************* Other **********************
-const int BabyInSeatPin =  11;   // Output to the BOB Arduino indicating if there is a baby in the seat or not
-const int InRangePin = 10;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
-const int SeatAlarmLedPin = 9;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
+const int BabyInSeatPin =  9;   // Output to the BOB Arduino indicating if there is a baby in the seat or not
+const int InRangePin = 8;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
+const int SeatAlarmLedPin = 7;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
 
 int SeatAlarmLedState = 0;       // FOB out of range for too long and baby in seat
 int SendAlarmState =  0;         // 1 = Send Sigfox message
@@ -95,11 +95,11 @@ void setup() {
   Serial.begin(9600);              // Communication with the Serial Monitor
   Serial.println("Hello world!");
 
-  Skywriter.begin(12, 13);
+  Skywriter.begin(10, 11);   // Was 12, 13  but there are two SPI devices  Pins that skywriter are connected to
   Skywriter.onTouch(touch);
   Skywriter.onAirwheel(airwheel);
   Skywriter.onGesture(gesture);
-  //Skywriter.onXYZ(xyz);  not interested in xyz co-ordinates only that the baby is in the seat
+  //Skywriter.onXYZ(xyz); // Makes Baby seat sensor very sensitive and maybe too sensitive ???????
 
 // ************ End of Skywriter Setup ******************************
 
@@ -123,19 +123,21 @@ void setup() {
 // *                       Main Loop                              * 
 // ****************************************************************
 void loop() { 
-  
+
+ 
   
 // ****************** Skywriter Main Loop Code **********************
+  
+  BabyInSeat = 0;     //Reset the status Flag before polling the skywriter. It will be set to 1 if the Skywriter detects the baby in the seat
+
+  Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat), BabyInSeat will be set to 1 if the baby is detected
 
 
-  Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat)
-
-
-// If the baby is in the seat then  BabyInSeatStatevariable remains active until there is no activity for 30 seconds
-//  After 30 seconds the seat starts to transmit Sigfox messages with GPS co-ordinates and Temperature measurements
 // **************End of Skywriter Main Loop Code ********************
 
-/*
+
+
+
   if (SigFoxMessageSent == 1)
   {
     currentMillis = millis();      // Update current time in miliSeconds
@@ -149,11 +151,11 @@ void loop() {
   }
 
 
-
 // read the state of the InRangePin digital pin:    
 
     InRangeState = digitalRead(InRangePin);
-
+    //Serial.println (InRangeState);
+    
     if (InRangeState == 1) // FOB in Range
     {
        previousMillis = millis();  // Reset the out of range counter as FOB in range
@@ -172,7 +174,7 @@ void loop() {
        SeatAlarmLedState = 0;       // Turn off the Alarm LED   
     }
 
-
+/*
 
   // Check how long the FOB has been out of range while baby is in the seat
     currentMillis = millis();      // Update current time in miliSeconds
@@ -210,11 +212,12 @@ void loop() {
       previousSigFoxMillis = millis();  // Start time
     }
 
-
-
-delay(100);
-
 */
+   
+  // SendSigfoxMessage();      // Send Message to Sigfox Cloud
+  // delay(100);   //Can be removed when debug is finished
+  //  digitalWrite(SeatAlarmLedPin, HIGH);
+  //  digitalWrite(BabyInSeatPin, HIGH);
 }
 
 // *************************************************************
@@ -248,7 +251,7 @@ void SendSigfoxMessage() {
       frame2.longitude = -8.653249;
     }
 
-    Serial.println ("Press button on Smarteverything board");
+    //Serial.println ("Press button on Smarteverything board");
   
     if (isButtonOnePressed()) {
       SerialUSB.println("Pressed!");
@@ -391,6 +394,7 @@ void xyz(unsigned int x, unsigned int y, unsigned int z){
   char buf[64];
   sprintf(buf, "%05u:%05u:%05u gest:%02u touch:%02u", x, y, z, Skywriter.last_gesture, Skywriter.last_touch);
   Serial.println(buf);
+  BabyInSeatState= 1;
 }
 
 void gesture(unsigned char type){
