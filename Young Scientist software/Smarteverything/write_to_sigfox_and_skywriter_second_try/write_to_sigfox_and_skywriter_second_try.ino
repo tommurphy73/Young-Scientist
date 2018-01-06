@@ -43,7 +43,7 @@ unsigned int min_x, min_y, min_z;
 // ******************* Other **********************
 const int BabyInSeatPin =  9;   // Output to the BOB Arduino indicating if there is a baby in the seat or not
 const int InRangePin = 8;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
-const int SeatAlarmLedPin = 7;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
+const int InRangeIndicatorPin = 7;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
 
 int FOBOutOfRangeAndBabyInSeatState = 0;       // FOB out of range for too long and baby in seat
 int SendAlarmState =  0;         // 1 = Send Sigfox message
@@ -118,8 +118,8 @@ void setup() {
     // set the InRangePin digial pin as input:
     pinMode(InRangePin, INPUT);
 
-   // set the SeatAlarmLedPin (LED) digital pin as output:
-    pinMode(SeatAlarmLedPin, OUTPUT);
+   // set the InRangeIndicatorPin (LED) digital pin as output:
+    pinMode(InRangeIndicatorPin, OUTPUT);
 // ******************* End of Input/Output setup **********************
 
 }
@@ -188,7 +188,11 @@ void loop() {
        if (SigFoxMessageSent != 1)
        {
          SendAlarmState = 1;     //Start sending Sigfox messages and turn on alarm    
-       }  
+       } 
+       digitalWrite(InRangeIndicatorPin, HIGH);     // in Range LED Indicator on 
+    }else
+    {
+       digitalWrite(InRangeIndicatorPin, LOW);     // in Range LED Indicator on 
     }
 
 
