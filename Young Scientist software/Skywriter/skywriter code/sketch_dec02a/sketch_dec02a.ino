@@ -5,6 +5,7 @@ unsigned int max_x, max_y, max_z;
 unsigned int min_x, min_y, min_z;
 
 void setup() {
+  delay(2000);//2 second delay
   Serial.begin(9600);
   Serial.println("Hello world!");
   

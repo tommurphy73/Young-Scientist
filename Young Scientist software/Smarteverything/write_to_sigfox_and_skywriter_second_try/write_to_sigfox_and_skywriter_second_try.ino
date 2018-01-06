@@ -135,7 +135,7 @@ void loop() {
 //  After 30 seconds the seat starts to transmit Sigfox messages with GPS co-ordinates and Temperature measurements
 // **************End of Skywriter Main Loop Code ********************
 
-
+/*
   if (SigFoxMessageSent == 1)
   {
     currentMillis = millis();      // Update current time in miliSeconds
@@ -213,6 +213,8 @@ void loop() {
 
 
 delay(100);
+
+*/
 }
 
 // *************************************************************
@@ -393,22 +395,22 @@ void xyz(unsigned int x, unsigned int y, unsigned int z){
 
 void gesture(unsigned char type){
   Serial.println("Got gesture ");
-  Serial.print(type,DEC);
-  Serial.print('\n');
+  //Serial.print(type,DEC);
+  //Serial.print('\n');
   BabyInSeatState= 1;
 }
 
 void touch(unsigned char type){
   Serial.println("Got touch ");
-  Serial.print(type,DEC);
-  Serial.print('\n');
+  //Serial.print(type,DEC);
+  //Serial.print('\n');
   BabyInSeatState= 1;
 }
 
 void airwheel(int delta){
   Serial.println("Got airwheel ");
-  Serial.print(delta);
-  Serial.print('\n');
+  //Serial.print(delta);
+  //Serial.print('\n');
   BabyInSeatState= 1;
 }
 
