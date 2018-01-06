@@ -214,11 +214,9 @@ void loop() {
            SigFoxMessageSent = 1; // Message send so no need to send again
            previousSigFoxMillis = millis();  // Start time
            delay(10000);  // Wait for a time to allow Sigfox message to send and receive
+           Skywriter.begin(10, 11);   // Skywriter picking up on some crap so trying to reset it  (Seems to have sorted out the problem)
         }
     }
- 
-  
-  
   
   if (SigFoxMessageSent == 1)
   {
@@ -231,9 +229,6 @@ void loop() {
         Serial.println ("Sigfox sent flag reset"); 
      }  
   }
-
-
-
 
 // ******************************** End of Send a message to SIGFOX ***************************************
 
