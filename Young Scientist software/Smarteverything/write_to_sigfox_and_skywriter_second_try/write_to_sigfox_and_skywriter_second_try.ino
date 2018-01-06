@@ -52,8 +52,8 @@ int BabyInSeatState = 0;         // 1 = Baby in seat
 int InRangeState = 0;            //  1 if Fob is in Ragne 0 if out of range
 
 // ************************** Fob Out of Range Timeout **************************
-unsigned long previousMillis = 0;     // will store last time LED was updated
-const long OutOfRangeTimeout = 6000;  // If the FOB is out of range for more than a minute then start sending sigfox messages
+unsigned long previousFobInRangeMillis = 0;     // will store last time LED was updated
+const long FobOutOfRangeTimeout = 6000;  // If the FOB is out of range for more than a minute then start sending sigfox messages
 unsigned long currentMillis;          // Used to store current time in milliseconds
 // ******************************************************************************
 
@@ -158,38 +158,19 @@ void loop() {
        digitalWrite(BabyInSeatPin, HIGH);     // LED on 
     }else
     {
-       digitalWrite(BabyInSeatPin, LOW);     // LED off 
-
-      // Baby is not in the seat so reset the timers
-       previousMillis = millis();   // Reset the out of range counter as no baby in the seat
-       SendAlarmState = 0;          // Stop sending Sigfox messages and turn on alarm
-       
+       digitalWrite(BabyInSeatPin, LOW);     // LED off  
     }
 
-
-
-  if (SigFoxMessageSent == 1)
-  {
-    currentMillis = millis();      // Update current time in miliSeconds
-    //Serial.println(currentMillis - previousSigFoxMillis);   // print time since last contact with Seat
-    if (currentMillis - previousSigFoxMillis >= SigFoxTimeout)
-    {
-       SigFoxMessageSent = 0;   // Reset the Sigfox Sent message flag after 10 minutes
-       Serial.println ("Sigfox sent flag reset"); 
-       
-    }
-    
-  }
 
 
 // read the state of the InRangePin digital pin:    
 
-    InRangeState = digitalRead(InRangePin);
+    InRangeState = digitalRead(InRangePin);  // Read InRange Pin from BOB (Indicates that FOB is in Bluetooth range of BOB)
      
     if (InRangeState == 1) // FOB in Range
     {
-       previousMillis = millis();  // Reset the out of range counter as FOB in range
-       SendAlarmState = 0;         // Stop sending Sigfox messages and turn on alarm   
+       previousFobInRangeMillis = millis();  // Reset the out of range counter as FOB in range
+       SendAlarmState = 0;                   // Stop sending Sigfox messages and turn on alarm   
     }
     else   // FOB out of Range for time determined by BOB
     {
@@ -197,26 +178,31 @@ void loop() {
     }
 
 
-  
-
-
 
   // Check how long the FOB has been out of range while baby is in the seat
     currentMillis = millis();      // Update current time in miliSeconds
-  //  Serial.println(currentMillis - previousMillis);   // print time since last contact with Seat
+    Serial.println(currentMillis - previousFobInRangeMillis);   // print time since last contact with Seat
  
-    if (currentMillis - previousMillis >= OutOfRangeTimeout)  
+    if (currentMillis - previousFobInRangeMillis >= FobOutOfRangeTimeout)  
     {
        if (SigFoxMessageSent != 1)
        {
          SendAlarmState = 1;     //Start sending Sigfox messages and turn on alarm    
-       }
+       }  
     }
 
 
-
-
-
+  if (SigFoxMessageSent == 1)
+  {
+     currentMillis = millis();      // Update current time in miliSeconds
+     //Serial.println(currentMillis - previousSigFoxMillis);   // print time since last contact with Seat
+     if (currentMillis - previousSigFoxMillis >= SigFoxTimeout)
+     {
+        SigFoxMessageSent = 0;   // Reset the Sigfox Sent message flag after 10 minutes
+        Serial.println ("Sigfox sent flag reset"); 
+       
+     }  
+  }
 
 
     if (SendAlarmState == 1)     // Send sigfox messages
@@ -227,12 +213,8 @@ void loop() {
       previousSigFoxMillis = millis();  // Start time
     }
 
-
-  // SendSigfoxMessage();      // Send Message to Sigfox Cloud
-  // delay(100);   //Can be removed when debug is finished
-  //  digitalWrite(SeatAlarmLedPin, HIGH);
-  //  digitalWrite(BabyInSeatPin, HIGH);
 }
+
 
 // *************************************************************
 // *                       End of Main Loop                    *
