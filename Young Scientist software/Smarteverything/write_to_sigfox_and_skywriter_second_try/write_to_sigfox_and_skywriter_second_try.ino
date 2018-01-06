@@ -41,9 +41,10 @@ unsigned int min_x, min_y, min_z;
 
 
 // ******************* Other **********************
-const int BabyInSeatPin =  9;   // Output to the BOB Arduino indicating if there is a baby in the seat or not
-const int InRangePin = 8;       // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
-const int InRangeIndicatorPin = 7;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
+const int BabyInSeatPin =  9;         // Output to the BOB Arduino indicating if there is a baby in the seat or not
+const int InRangePin = 8;             // Input from BOB Arduino to indicate if the FOB is in Range This goes high 5 seconds after the last message from the FOB is received by BOB arduino
+const int InRangeIndicatorPin = 7;    // Pin used to output to an LED indicating that the alarm has been activated (High Active)
+const int SendSigfoxMessagePin = 6;   // Pin used to output to an LED indicating that the alarm has been activated (High Active)
 
 int FOBOutOfRangeAndBabyInSeatState = 0;       // FOB out of range for too long and baby in seat
 int SendAlarmState =  0;         // 1 = Send Sigfox message
@@ -52,15 +53,15 @@ int BabyInSeatState = 0;         // 1 = Baby in seat
 int InRangeState = 0;            //  1 if Fob is in Ragne 0 if out of range
 
 // ************************** Fob Out of Range Timeout **************************
-unsigned long previousFobInRangeMillis = 0;     // will store last time LED was updated
-const long FobOutOfRangeTimeout = 6000;  // If the FOB is out of range for more than a minute then start sending sigfox messages
-unsigned long currentMillis;          // Used to store current time in milliseconds
+unsigned long previousFobInRangeMillis = 0; // will store last time LED was updated
+const long FobOutOfRangeTimeout = 10000;    // If the FOB is out of range for more than a minute then start sending sigfox messages
+unsigned long currentMillis;                // Used to store current time in milliseconds
 // ******************************************************************************
 
 // *************************** SigFox Retry Timeout *****************************
 // Retry sending Sigfox message every 10 minutes
 unsigned long previousSigFoxMillis = 0;     // will store last time LED was updated
-const long SigFoxTimeout = 600000;  // Retry sending the Sigfox message every 10 minutes 
+const long SigFoxTimeout = 20000;           // Retry sending the Sigfox message every 20 seconds 
 // ******************************************************************************
 
 // ************************** Baby in Seat Timeout ******************************
@@ -140,9 +141,11 @@ void loop() {
     if (currentMillis - previousBabyInSeatMillis >= BabyInSeatTimeout)  // If No baby has been detected by the Skywriter for 5 seconds then set BabyInSeatState to 0 (No baby in seat)
     {
       BabyInSeatState = 0;     //Reset the status Flag before polling the skywriter. It will be set to 1 if the Skywriter detects the baby in the seat
+      SigFoxMessageSent = 0;   // Ready to send Sigfox message again
+      previousSigFoxMillis = millis();  // Start time  
     }else
     {
-      BabyInSeatState = 1;     //Baby is in the seat
+      BabyInSeatState = 1;     // Baby is in the seat
     }
 
     Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat), BabyInSeatState will be set to 1 if the baby is detected
@@ -171,7 +174,9 @@ void loop() {
     if (InRangeState == 1) // FOB in Range
     {
        previousFobInRangeMillis = millis();  // Reset the out of range counter as FOB in range
-       SendAlarmState = 0;                   // Stop sending Sigfox messages and turn on alarm   
+       SendAlarmState = 0;                   // Stop sending Sigfox messages and turn on alarm 
+       SigFoxMessageSent = 0;                // Ready to send Sigfox message again
+       previousSigFoxMillis = millis();      // Start time  
     }
     else   // FOB out of Range for time determined by BOB
     {
@@ -182,7 +187,7 @@ void loop() {
 
   // Check how long the FOB has been out of range while baby is in the seat
     currentMillis = millis();      // Update current time in miliSeconds
-    Serial.println(currentMillis - previousFobInRangeMillis);   // print time since last contact with Seat
+    //Serial.println(currentMillis - previousFobInRangeMillis);   // print time since last contact with Seat
  
     if (currentMillis - previousFobInRangeMillis >= FobOutOfRangeTimeout)  
     {
@@ -204,10 +209,11 @@ void loop() {
     {
         if (SigFoxMessageSent != 1)   // Message not already sent
         {
-           // SendSigfoxMessage();      // Send Message to Sigfox Cloud
-           //Serial.print ("Sending Sigfox message to the cloud");
+           SendSigfoxMessage();      // Send Message to Sigfox Cloud
+           Serial.println ("Sending Sigfox message to the cloud");
            SigFoxMessageSent = 1; // Message send so no need to send again
            previousSigFoxMillis = millis();  // Start time
+           delay(10000);  // Wait for a time to allow Sigfox message to send and receive
         }
     }
  
@@ -217,6 +223,7 @@ void loop() {
   if (SigFoxMessageSent == 1)
   {
      currentMillis = millis();      // Update current time in miliSeconds
+     //Serial.print("Time to send second Sigfox Message: ");
      //Serial.println(currentMillis - previousSigFoxMillis);   // print time since last contact with Seat
      if (currentMillis - previousSigFoxMillis >= SigFoxTimeout)
      {
@@ -267,11 +274,12 @@ void SendSigfoxMessage() {
 
     //Serial.println ("Press button on Smarteverything board");
   
-    if (isButtonOnePressed()) {
-      SerialUSB.println("Pressed!");
+ //   if (isButtonOnePressed()) {
+ //     SerialUSB.println("Pressed!");
       frame.buttonPressed = true;
       last = millis();
-    }
+//    }
+
     if (frame.buttonPressed == true) {
       // bool answer = sendSigfox(&frame, sizeof(data));   removed as not needed
       /*SerialUSB.print("  X = ");
