@@ -147,10 +147,6 @@ void loop() {
 
     Skywriter.poll();   // Check the Skywriter for activity  (Check if the baby is in the seat), BabyInSeatState will be set to 1 if the baby is detected
 
-// **************End of Skywriter Main Loop Code ********************
-
-
-
 
    // Turn on or off LED depending on wheater the baby is in the seat or not
     if (BabyInSeatState == 1)
@@ -161,10 +157,15 @@ void loop() {
        digitalWrite(BabyInSeatPin, LOW);     // LED off  
     }
 
+// **************End of Skywriter Main Loop Code ********************
 
 
-// read the state of the InRangePin digital pin:    
 
+
+
+// ******************  Check If the FOB is out of Range of BOB for more than FobOutRangeTimeout *******************************
+
+    //read the state of the InRangePin digital pin:    
     InRangeState = digitalRead(InRangePin);  // Read InRange Pin from BOB (Indicates that FOB is in Bluetooth range of BOB)
      
     if (InRangeState == 1) // FOB in Range
@@ -185,16 +186,18 @@ void loop() {
  
     if (currentMillis - previousFobInRangeMillis >= FobOutOfRangeTimeout)  
     {
-       if (SigFoxMessageSent != 1)
-       {
-         SendAlarmState = 1;     //Start sending Sigfox messages and turn on alarm    
-       } 
        digitalWrite(InRangeIndicatorPin, HIGH);     // in Range LED Indicator on 
     }else
     {
        digitalWrite(InRangeIndicatorPin, LOW);     // in Range LED Indicator on 
     }
 
+//************************** End of Check If the FOB is in Range of BOB  **************************
+
+
+
+
+// ********************************* Send a message to SIGFOX *************************************
 
   if (SigFoxMessageSent == 1)
   {
@@ -204,7 +207,6 @@ void loop() {
      {
         SigFoxMessageSent = 0;   // Reset the Sigfox Sent message flag after 10 minutes
         Serial.println ("Sigfox sent flag reset"); 
-       
      }  
   }
 
@@ -217,12 +219,15 @@ void loop() {
       previousSigFoxMillis = millis();  // Start time
     }
 
+// ******************************** End of Send a message to SIGFOX ***************************************
+
+
+
 }
 
-
-// *************************************************************
-// *                       End of Main Loop                    *
-// *************************************************************
+// **************************************************************************
+// *                          End of Main Loop                              *
+// **************************************************************************
 
 
 
