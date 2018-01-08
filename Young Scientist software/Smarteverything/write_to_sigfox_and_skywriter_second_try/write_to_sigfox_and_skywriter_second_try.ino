@@ -210,7 +210,7 @@ void loop() {
         if (SigFoxMessageSent != 1)   // Message not already sent
         {
            //   Uncomment the next line to send Sigfox messagesd
-           //   SendSigfoxMessage();      // Send Message to Sigfox Cloud
+              SendSigfoxMessage();      // Send Message to Sigfox Cloud
            Serial.println ("Sending Sigfox message to the cloud");
            SigFoxMessageSent = 1; // Message send so no need to send again
            previousSigFoxMillis = millis();  // Start time
