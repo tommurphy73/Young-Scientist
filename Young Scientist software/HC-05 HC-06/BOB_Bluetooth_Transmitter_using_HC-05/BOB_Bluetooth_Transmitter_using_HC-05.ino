@@ -45,6 +45,11 @@ void setup()
 
     pinMode(11,INPUT);       // Input from Smarteverything determine if the baby is in the seat or not
                              // High indicates that baby is in the seat
+
+
+    pinMode(7,OUTPUT);       // Output from BOB to Sigfox to indicate that the FOB is in Range
+                             // High indicates that FOB is in Range, Low indicates that FOB is out of Range
+                         
  
     BTserial.begin(baudRate);    // Start up the communication with the Bluetooth module
     Serial.print("BTserial started at "); Serial.println(baudRate);
@@ -86,7 +91,6 @@ void loop()
     if  (c == 'K')
     { 
         previousMillis = currentMillis;  // Response has been got so reset the timer
-        //digitalWrite(12, HIGH);        // Indicates that the FOB is still responding
         Serial.println("Key Fob has responded");
     }
 
@@ -95,11 +99,11 @@ void loop()
 
     if (currentMillis - previousMillis >= interval) 
     { 
-      digitalWrite(12, LOW);  // Indicates no response from FOB (FOB out of range)
+      digitalWrite(7, LOW);  // Indicates no response from FOB (FOB out of range)
       Serial.println("Fob is out of Range for 5 seconds");
     } else
     {
-      digitalWrite(12, HIGH); // Indicates that the FOB is still responding 
+      digitalWrite(7, HIGH); // Indicates that the FOB is still responding 
       Serial.println("Fob is in Range"); 
     }
    
