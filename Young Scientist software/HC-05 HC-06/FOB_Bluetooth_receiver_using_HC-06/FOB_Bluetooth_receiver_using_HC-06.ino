@@ -1,4 +1,4 @@
-//  Sketc: basicSerialWithNL_001
+//  Sketch: basicSerialWithNL_001
 // 
 //  Uses hardware serial to talk to the host computer and software serial 
 //  for communication with the Bluetooth module
@@ -173,9 +173,10 @@ void loop()
     SwitchState = digitalRead(SwitchPin);
     //Serial.println(SwitchState);
     
-     if (SwitchState == HIGH)
+     if (SwitchState == LOW)
     {
-         SwitchPressed = 1;    // The disable swithc has been pressed.      
+         SwitchPressed = 1;    // The disable swithc has been pressed. 
+         Serial.println ("Switch has been pressed ");     
     }  
 }
 
@@ -211,12 +212,14 @@ void BlinkLED()
       if (SwitchPressed == 0)    // Buzzer only active is switch has not been pressed
       {
           digitalWrite(BuzzerPin, HIGH); // Turn on Buzzer
+          Serial.println ("Buzzer High ");
       }
     } 
      else 
     {
       ledState = LOW;               //  else turn LED off
       digitalWrite(BuzzerPin, LOW); // Buzzer Off connected to digital pin 12
+      Serial.println ("Buzzer Low ");
     }
     
     digitalWrite(ledPin, ledState);  // set the LED with the ledState of the variable:
