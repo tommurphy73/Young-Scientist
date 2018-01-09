@@ -107,7 +107,7 @@ void setup() {
   Skywriter.onTouch(touch);
   Skywriter.onAirwheel(airwheel);
   Skywriter.onGesture(gesture);
-  //Skywriter.onXYZ(xyz); // Makes Baby seat sensor very sensitive and maybe too sensitive ???????
+  Skywriter.onXYZ(xyz); // Makes Baby seat sensor very sensitive and maybe too sensitive ???????
 
 // ************ End of Skywriter Setup ******************************
 
@@ -264,8 +264,8 @@ void SendSigfoxMessage() {
       frame2.longitude  = smeGps.getLongitude();
     }
     else {
-      frame2.latitude = 52.671663;    //default if no gps signal found
-      frame2.longitude = -8.653249;
+      frame2.latitude = 53.321998;    // Default if no gps signal found
+      frame2.longitude = -6.224332;   // RDS Dublin
     }
 
     //Serial.println ("Press button on Smarteverything board");
